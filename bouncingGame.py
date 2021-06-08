@@ -15,8 +15,6 @@ currentCaption = captions[0]
 pygame.display.set_caption(currentCaption)
 
 color_sequence = "red purple yellow blue green orange".split()
-iconColor = random.choice(color_sequence)
-soundObj = pygame.mixer.Sound("click.wav")
 frame = 1
 
 
@@ -44,40 +42,42 @@ class Block:
 
         self.direction = [self.random_direction(), self.random_direction()]
         self.magnitude = 5
+        self.velocity = self.magnitude
         self.color_sequence = "red purple yellow blue green orange".split()
+        self.color = random.choice(color_sequence)
+        self.click_sound = pygame.mixer.Sound("click.wav")
 
     def update(self):
 
-        self.x += self.magnitude * self.direction[0]
-        self.y += self.magnitude * self.direction[1]
+        self.x += self.velocity * self.direction[0]
+        self.y += self.velocity * self.direction[1]
 
         # check for collisions
         if self.x < 0:
             self.x = 0
             self.direction[0] *= -1
-            iconColor = self.randomColor(iconColor)
-            soundObj.play()
+            self.color = self.change_color(self.color)
+            self.click_sound.play()
         elif (self.x + self.w) > windowSize[0]:
             self.x = windowSize[0] - self.w
             self.direction[0] *= -1
-            iconColor = self.randomColor(iconColor)
-            soundObj.play()
+            self.color = self.change_color(self.color)
+            self.click_sound.play()
 
         if self.y < 0:
             self.y = 0
             self.direction[1] *= -1
-            iconColor = self.randomColor(iconColor)
-            soundObj.play()
+            self.color = self.change_color(self.color)
+            self.click_sound.play()
         elif (self.y + self.h) > windowSize[1]:
             self.y = windowSize[1] - self.h
             self.direction[1] *= -1
-            iconColor = self.randomColor(iconColor)
-            soundObj.play()
+            self.color = self.change_color(self.color)
+            self.click_sound.play()
 
     def draw(self):
-        # display.blit(pygame.Rect(100, 100, 100, 100))
         pygame.draw.rect(
-            display, iconColor, pygame.Rect(self.x, self.y, self.w, self.h)
+            display, self.color, pygame.Rect(self.x, self.y, self.w, self.h)
         )
 
     def random_direction(self):
@@ -93,15 +93,17 @@ class SequentialColorBlock(Block):
         nextIndex = current_index + 1
         if nextIndex >= len(self.color_sequence):
             nextIndex = 0
-        nextColor = self.color_sequence[nextIndex]
-        return nextColor
+        next_color = self.color_sequence[nextIndex]
+        return next_color
 
 
 class RandomPaletteBlock(Block):
     def change_color(self, current_color) -> str:
         # must switch colors, but it can be random
-        nextColor = random.choice([c for c in self.color_sequence if c != current_color])
-        return nextColor
+        next_color = random.choice(
+            [c for c in self.color_sequence if c != current_color]
+        )
+        return next_color
 
 
 class RandomColorBlock(Block):
@@ -131,17 +133,21 @@ while running:
         if event.type == QUIT:
             pygame.quit()
             running = False
-        # if event.type == pygame.KEYDOWN:
-        #     if event.key == pygame.K_ESCAPE:
-        #         pygame.quit()
-        #         running = False
-        #     if event.key == pygame.K_SPACE and currentVelocity != 0:
-        #         currentVelocity = 0
-        #     elif event.key == pygame.K_SPACE and currentVelocity == 0:
-        #         currentVelocity = defaultVelocity
-        #     elif event.key == pygame.K_r:
-        #         self.direction[0] *= -1
-        #         self.direction[1] *= -1
-    # move it
-    pygame.display.update()
-    clock.tick(60)  # fps
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                running = False
+            if event.key == pygame.K_SPACE and block.velocity != 0:
+                block.velocity = 0
+            elif event.key == pygame.K_SPACE and block.velocity == 0:
+                block.velocity = block.magnitude
+            elif event.key == pygame.K_r:
+                block.direction[0] *= -1
+                block.direction[1] *= -1
+
+    # remove error when quitting
+    try:
+        pygame.display.update()
+    except pygame.error:
+        pass
+    clock.tick(60)
