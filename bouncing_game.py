@@ -1,7 +1,5 @@
-#! ~/Desktop/Environments/pygames.venv/bin/activate
 import pygame
 import random
-from pygame import *
 
 
 pygame.init()
@@ -130,7 +128,7 @@ while running:
         pygame.display.set_caption(currentCaption)
 
     for event in pygame.event.get():
-        if event.type == QUIT:
+        if event.type == pygame.QUIT:
             pygame.quit()
             running = False
         if event.type == pygame.KEYDOWN:
@@ -149,5 +147,5 @@ while running:
     try:
         pygame.display.update()
     except pygame.error:
-        pass
+        break
     clock.tick(60)
